@@ -117,7 +117,13 @@ bool CmdParser::moveBufPtr(char *const ptr)
   else
   {
     int len = _readBufEnd - ptr;
+    while (_readBufPtr != _readBuf)
+    {
+      cout << '\b';
+      _readBufPtr--;
+    }
     cout << _readBuf;
+    _readBufPtr = _readBufEnd;
     for (int i = 0; i < len; i++)
       cout << '\b';
     cout.flush();
@@ -171,6 +177,8 @@ void CmdParser::insertChar(char ch, int repeat)
 {
   cout << ch;
   cout.flush();
+  *_readBufPtr = ch;
+  _readBufPtr++;
   _readBufEnd++;
   moveBufPtr(_readBufEnd);
   // TODO...
