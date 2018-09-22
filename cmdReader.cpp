@@ -52,6 +52,8 @@ void CmdParser::readCmdInt(istream &istr)
       moveBufPtr(_readBufEnd);
       break;
     case BACK_SPACE_KEY: /* TODO */
+      moveBufPtr(_readBufPtr-1);
+      deleteChar();
       break;
     case DELETE_KEY:
       deleteChar();
@@ -154,6 +156,17 @@ bool CmdParser::moveBufPtr(char *const ptr)
 //
 bool CmdParser::deleteChar()
 {
+  if(_readBufPtr>=_readBufEnd||)
+  {
+    mybeep();
+    return false;
+  }
+  else{
+    char* tmpPtr = *_readBufPtr;
+    while(tmpPtr<_readBufEnd){
+      tmpPtr = *(tmpPtr+1);
+    }
+  }
   // TODO...
   return true;
 }
