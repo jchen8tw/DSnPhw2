@@ -56,7 +56,8 @@ void CmdParser::readCmdInt(istream &istr)
       deleteChar();
       break;
     case DELETE_KEY:
-      deleteChar();
+      deleteLine();
+      //deleteChar();
       break;
     case NEWLINE_KEY:
       addHistory();
@@ -156,16 +157,20 @@ bool CmdParser::moveBufPtr(char *const ptr)
 //
 bool CmdParser::deleteChar()
 {
-  if(_readBufPtr>=_readBufEnd||)
+  if(_readBufPtr>=_readBufEnd)
   {
     mybeep();
     return false;
   }
   else{
-    char* tmpPtr = *_readBufPtr;
+    char* tmpPtr = _readBufPtr;
     while(tmpPtr<_readBufEnd){
-      tmpPtr = *(tmpPtr+1);
+      *tmpPtr = *(tmpPtr+1);
+      tmpPtr++;
     }
+    _readBufEnd--;
+    *_readBufEnd = 0;
+    moveBufPtr(_readBufPtr);
   }
   // TODO...
   return true;
@@ -214,6 +219,21 @@ void CmdParser::insertChar(char ch, int repeat)
 //
 void CmdParser::deleteLine()
 {
+  char* tmpPtr = _readBufPtr;
+  while(tmpPtr!=_readBuf){
+    cout << '\b';
+    tmpPtr--;
+  }
+  for(;tmpPtr<=_readBufEnd;tmpPtr++){
+    cout << " ";
+    *tmpPtr = 0;
+  }
+  while(tmpPtr!=_readBuf){
+    cout << '\b';
+    tmpPtr--;
+  }
+  _readBufPtr = _readBufEnd = _readBuf;
+  *_readBufEnd = 0;
   // TODO...
 }
 
