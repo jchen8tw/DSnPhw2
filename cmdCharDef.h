@@ -175,7 +175,7 @@ enum ParseChar
   UNDEFINED_KEY = TA_UNDEFINED_KEY,
 
   // For output only, you don't need to modify this part
-  BEEP_CHAR = '\a',
+  BEEP_CHAR = int('\a'),
   BACK_SPACE_CHAR = TA_BACK_SPACE_CHAR,
 
   // dummy end
