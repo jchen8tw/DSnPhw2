@@ -51,10 +51,14 @@ void CmdParser::readCmdInt(istream &istr)
     case END_KEY:
       moveBufPtr(_readBufEnd);
       break;
-    case BACK_SPACE_KEY: /* TODO */
-      moveBufPtr(_readBufPtr-1);
-      deleteChar();
-      break;
+    case BACK_SPACE_KEY:
+      if(moveBufPtr(_readBufPtr-1)){
+        deleteChar();
+        break;
+      }
+      else{
+        break;
+      }
     case DELETE_KEY:
       deleteLine();
       //deleteChar();
@@ -70,10 +74,10 @@ void CmdParser::readCmdInt(istream &istr)
     case ARROW_DOWN_KEY:
       moveToHistory(_historyIdx + 1);
       break;
-    case ARROW_RIGHT_KEY: /* TODO */
+    case ARROW_RIGHT_KEY: 
       moveBufPtr(_readBufPtr + 1);
       break;
-    case ARROW_LEFT_KEY: /* TODO */
+    case ARROW_LEFT_KEY:
       moveBufPtr(_readBufPtr - 1);
       break;
     case PG_UP_KEY:
@@ -110,6 +114,8 @@ void CmdParser::readCmdInt(istream &istr)
 //
 // [Note] This function can also be called by other member functions below
 //        to move the _readBufPtr to proper position.
+// [Caution!] This function can only be called 
+//            when the cursor and _readBufPtr is at the same position
 bool CmdParser::moveBufPtr(char *const ptr)
 {
   if (ptr < _readBuf || ptr > _readBufEnd)
@@ -126,11 +132,11 @@ bool CmdParser::moveBufPtr(char *const ptr)
       _readBufPtr--;
     }
     cout << _readBuf;
-    _readBufPtr = _readBufEnd;
     for (int i = 0; i < len; i++)
       cout << '\b';
     cout.flush();
     _readBufPtr = ptr;
+//    cerr << (void*) _readBuf << " " <<(void* ) _readBufPtr << " " << (void* )_readBufEnd << endl;
     // TODO...
     return true;
   }
@@ -163,16 +169,27 @@ bool CmdParser::deleteChar()
     return false;
   }
   else{
-    char* tmpPtr = _readBufPtr;
+    char *tmpPtr = _readBufPtr;
     while(tmpPtr<_readBufEnd){
       *tmpPtr = *(tmpPtr+1);
       tmpPtr++;
     }
+    tmpPtr = _readBufPtr;
+    while(tmpPtr!=_readBuf){
+      cout << '\b';
+      tmpPtr--;
+    }
+    for(int i = 0;i<_readBufEnd-_readBuf;i++){
+      cout << " ";
+    }
+    for(int i = 0;i<_readBufEnd-_readBufPtr;i++){
+      cout << '\b';
+    }
     _readBufEnd--;
     *_readBufEnd = 0;
     moveBufPtr(_readBufPtr);
+    return true;
   }
-  // TODO...
   return true;
 }
 
@@ -193,12 +210,16 @@ bool CmdParser::deleteChar()
 //
 void CmdParser::insertChar(char ch, int repeat)
 {
-  cout << ch;
-  cout.flush();
-  *_readBufPtr = ch;
-  _readBufPtr++;
+  //cerr << (void*)_readBuf << " " << (void*)_readBufPtr << " "<< (void*)_readBufEnd << endl;
+  char *tmpPtr = _readBufEnd;
   _readBufEnd++;
-  moveBufPtr(_readBufEnd);
+  *_readBufEnd = 0;
+  while(tmpPtr > _readBufPtr){
+    *tmpPtr = *(tmpPtr-1);
+    tmpPtr--; 
+  }
+  *_readBufPtr = ch;
+  moveBufPtr(_readBufPtr+1);
   // TODO...
   assert(repeat >= 1);
 }
