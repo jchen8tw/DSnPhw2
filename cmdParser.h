@@ -33,7 +33,7 @@ class CmdParser
 
 public:
   CmdParser() : _readBufPtr(_readBuf), _readBufEnd(_readBuf),
-                _historyIdx(0), _tempCmdStored(false) {}
+                _historyIdx(0), _tempCmdStored(false) {_history.clear();}
   virtual ~CmdParser() {}
 
   bool openDofile(const char *dof)

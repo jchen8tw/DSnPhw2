@@ -53,11 +53,13 @@ void CmdParser::readCmdInt(istream &istr)
       moveBufPtr(_readBufEnd);
       break;
     case BACK_SPACE_KEY:
-      if(moveBufPtr(_readBufPtr-1)){
+      if (moveBufPtr(_readBufPtr - 1))
+      {
         deleteChar();
         break;
       }
-      else{
+      else
+      {
         break;
       }
     case DELETE_KEY:
@@ -74,7 +76,7 @@ void CmdParser::readCmdInt(istream &istr)
     case ARROW_DOWN_KEY:
       moveToHistory(_historyIdx + 1);
       break;
-    case ARROW_RIGHT_KEY: 
+    case ARROW_RIGHT_KEY:
       moveBufPtr(_readBufPtr + 1);
       break;
     case ARROW_LEFT_KEY:
@@ -86,7 +88,12 @@ void CmdParser::readCmdInt(istream &istr)
     case PG_DOWN_KEY:
       moveToHistory(_historyIdx + PG_OFFSET);
       break;
-    case TAB_KEY: /* TODO */
+    case TAB_KEY:
+      if (((_readBufPtr - _readBuf) % TAB_POSITION != 0))
+      {
+        int spaceneed = TAB_POSITION - ((_readBufPtr - _readBuf) % TAB_POSITION);
+        insertChar(' ', spaceneed);
+      }
       break;
     case INSERT_KEY: // not yet supported; fall through to UNDEFINE
     case UNDEFINED_KEY:
@@ -114,7 +121,7 @@ void CmdParser::readCmdInt(istream &istr)
 //
 // [Note] This function can also be called by other member functions below
 //        to move the _readBufPtr to proper position.
-// [Caution!] This function can only be called 
+// [Caution!] This function can only be called
 //            when the cursor and _readBufPtr is at the same position
 bool CmdParser::moveBufPtr(char *const ptr)
 {
@@ -136,8 +143,6 @@ bool CmdParser::moveBufPtr(char *const ptr)
       cout << '\b';
     cout.flush();
     _readBufPtr = ptr;
-//    cerr << (void*) _readBuf << " " <<(void* ) _readBufPtr << " " << (void* )_readBufEnd << endl;
-    // TODO...
     return true;
   }
 }
@@ -163,26 +168,31 @@ bool CmdParser::moveBufPtr(char *const ptr)
 //
 bool CmdParser::deleteChar()
 {
-  if(_readBufPtr>=_readBufEnd)
+  if (_readBufPtr >= _readBufEnd)
   {
     mybeep();
     return false;
   }
-  else{
+  else
+  {
     char *tmpPtr = _readBufPtr;
-    while(tmpPtr<_readBufEnd){
-      *tmpPtr = *(tmpPtr+1);
+    while (tmpPtr < _readBufEnd)
+    {
+      *tmpPtr = *(tmpPtr + 1);
       tmpPtr++;
     }
     tmpPtr = _readBufPtr;
-    while(tmpPtr!=_readBuf){
+    while (tmpPtr != _readBuf)
+    {
       cout << '\b';
       tmpPtr--;
     }
-    for(int i = 0;i<_readBufEnd-_readBuf;i++){
+    for (int i = 0; i < _readBufEnd - _readBuf; i++)
+    {
       cout << " ";
     }
-    for(int i = 0;i<_readBufEnd-_readBufPtr;i++){
+    for (int i = 0; i < _readBufEnd - _readBufPtr; i++)
+    {
       cout << '\b';
     }
     _readBufEnd--;
@@ -211,17 +221,20 @@ bool CmdParser::deleteChar()
 void CmdParser::insertChar(char ch, int repeat)
 {
   //cerr << (void*)_readBuf << " " << (void*)_readBufPtr << " "<< (void*)_readBufEnd << endl;
-  char *tmpPtr = _readBufEnd;
-  _readBufEnd++;
-  *_readBufEnd = 0;
-  while(tmpPtr > _readBufPtr){
-    *tmpPtr = *(tmpPtr-1);
-    tmpPtr--; 
+  for (int i = 0; i < repeat; i++)
+  {
+    char *tmpPtr = _readBufEnd;
+    _readBufEnd++;
+    *_readBufEnd = 0;
+    while (tmpPtr > _readBufPtr)
+    {
+      *tmpPtr = *(tmpPtr - 1);
+      tmpPtr--;
+    }
+    *_readBufPtr = ch;
+    moveBufPtr(_readBufPtr + 1);
+    assert(repeat >= 1);
   }
-  *_readBufPtr = ch;
-  moveBufPtr(_readBufPtr+1);
-  // TODO...
-  assert(repeat >= 1);
 }
 
 // 1. Delete the line that is currently shown on the screen
@@ -240,22 +253,24 @@ void CmdParser::insertChar(char ch, int repeat)
 //
 void CmdParser::deleteLine()
 {
-  char* tmpPtr = _readBufPtr;
-  while(tmpPtr!=_readBuf){
+  char *tmpPtr = _readBufPtr;
+  while (tmpPtr != _readBuf)
+  {
     cout << '\b';
     tmpPtr--;
   }
-  for(;tmpPtr<=_readBufEnd;tmpPtr++){
+  for (; tmpPtr <= _readBufEnd; tmpPtr++)
+  {
     cout << " ";
     *tmpPtr = 0;
   }
-  while(tmpPtr!=_readBuf){
+  while (tmpPtr != _readBuf)
+  {
     cout << '\b';
     tmpPtr--;
   }
   _readBufPtr = _readBufEnd = _readBuf;
   *_readBufEnd = 0;
-  // TODO...
 }
 
 // This functions moves _historyIdx to index and display _history[index]
@@ -278,35 +293,42 @@ void CmdParser::deleteLine()
 //
 void CmdParser::moveToHistory(int index)
 {
- if(index < _historyIdx){
-   if(index < 0) index = 0;
-   if(_historyIdx==0){
-     mybeep();
-     return;
-   }
-   else if(_historyIdx == _history.size()){
-       addHistory();
-       _historyIdx = index;
-       _tempCmdStored = true;
-       retrieveHistory();
-       return;
-   }
-   else{
-     _historyIdx = index;
-     retrieveHistory();
-   }
- }
- else{
-   if(index >= _history.size()){
-     mybeep();
-     index = _history.size()-1;
-     _historyIdx = index;
-     return;
-   }
-   _historyIdx = index;
-   retrieveHistory();
- }
-  // TODO...
+  //going up
+  if (index < _historyIdx)
+  {
+    if (index < 0)
+      index = 0;
+    if (_historyIdx == 0)
+    {
+      mybeep();
+      return;
+    }
+    //not yet stored
+    if ((!_tempCmdStored) && (_historyIdx == _history.size()))
+    {
+      _tempCmdStored = true;
+      _history.push_back(_readBuf);
+    } //stored
+    else if ((_tempCmdStored) && (_historyIdx == _history.size() - 1))
+    {
+      _history[_historyIdx] = _readBuf;
+    }
+    
+  }
+  else
+  {
+    if (index >= _history.size())
+      index = _history.size() - 1;
+    if (((!_tempCmdStored) && (_historyIdx == _history.size())) || ((_tempCmdStored) && (_historyIdx == _history.size() - 1)))
+    {
+      mybeep();
+      return;
+    }
+    
+  }
+  _historyIdx = index;
+  retrieveHistory();
+  return;
 }
 
 // This function adds the string in _readBuf to the _history.
@@ -324,21 +346,20 @@ void CmdParser::moveToHistory(int index)
 void CmdParser::addHistory()
 {
   string readBuf = _readBuf;
-  string whitespaces (" \t\f\v\n\r");
-  readBuf.erase(readBuf.find_last_not_of(whitespaces)+1);
-  readBuf.erase(0,readBuf.find_first_not_of(whitespaces));
-   if(_tempCmdStored){
+  string whitespaces(" \t\f\v\n\r");
+  readBuf.erase(readBuf.find_last_not_of(whitespaces) + 1);
+  readBuf.erase(0, readBuf.find_first_not_of(whitespaces));
+  if (readBuf != "")
+  {
+    if (_tempCmdStored)
+    {
       _history.pop_back();
-      _history.push_back(readBuf);
       _tempCmdStored = false;
-      
     }
-    else{
-      _history.push_back(readBuf);
-    }
+    _history.push_back(readBuf);
+  }
   _historyIdx = _history.size();
   return;
-  // TODO...
 }
 
 // 1. Replace current line with _history[_historyIdx] on the screen
