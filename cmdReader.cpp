@@ -7,6 +7,7 @@
 ****************************************************************************/
 #include <cassert>
 #include <cstring>
+#include <sstream>
 #include "cmdParser.h"
 
 using namespace std;
@@ -60,8 +61,7 @@ void CmdParser::readCmdInt(istream &istr)
         break;
       }
     case DELETE_KEY:
-      deleteLine();
-      //deleteChar();
+      deleteChar();
       break;
     case NEWLINE_KEY:
       addHistory();
@@ -278,6 +278,34 @@ void CmdParser::deleteLine()
 //
 void CmdParser::moveToHistory(int index)
 {
+ if(index < _historyIdx){
+   if(index < 0) index = 0;
+   if(_historyIdx==0){
+     mybeep();
+     return;
+   }
+   else if(_historyIdx == _history.size()){
+       addHistory();
+       _historyIdx = index;
+       _tempCmdStored = true;
+       retrieveHistory();
+       return;
+   }
+   else{
+     _historyIdx = index;
+     retrieveHistory();
+   }
+ }
+ else{
+   if(index >= _history.size()){
+     mybeep();
+     index = _history.size()-1;
+     _historyIdx = index;
+     return;
+   }
+   _historyIdx = index;
+   retrieveHistory();
+ }
   // TODO...
 }
 
@@ -295,6 +323,21 @@ void CmdParser::moveToHistory(int index)
 //
 void CmdParser::addHistory()
 {
+  string readBuf = _readBuf;
+  string whitespaces (" \t\f\v\n\r");
+  readBuf.erase(readBuf.find_last_not_of(whitespaces)+1);
+  readBuf.erase(0,readBuf.find_first_not_of(whitespaces));
+   if(_tempCmdStored){
+      _history.pop_back();
+      _history.push_back(readBuf);
+      _tempCmdStored = false;
+      
+    }
+    else{
+      _history.push_back(readBuf);
+    }
+  _historyIdx = _history.size();
+  return;
   // TODO...
 }
 
